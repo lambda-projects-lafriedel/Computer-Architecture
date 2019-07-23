@@ -2,6 +2,10 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+MUL = 0b10100010
+
 class CPU:
     """Main CPU class."""
 
@@ -9,9 +13,25 @@ class CPU:
         self.ram = [0] * 256 # base 10 indexing
         self.reg = [0] * 8
         self.pc = 0
+        self.branch_table = {
+            LDI: self.handle_LDI,
+            PRN: self.handle_PRN,
+            MUL: self.handle_MUL
+        }
         # self.fl -- mentioned inside trace()
         # self.ie -- mentioned inside trace()
 
+    def handle_LDI(self, reg, val):
+        self.reg[reg] = val
+        self.pc += 3
+
+    def handle_PRN(self, reg):
+        print(self.reg[reg])
+        self.pc += 2
+
+    def handle_MUL(self, num1, num2):
+        self.alu("MUL", num1, num2)
+        self.pc += 3
 
     def load(self):
         if len(sys.argv) != 2:
@@ -40,8 +60,6 @@ class CPU:
             print(f"{sys.argv[0]}: {sys.argv[1]} not found")
 
     def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         if op == "MUL":
@@ -70,21 +88,17 @@ class CPU:
 
         print()
     
-    def ram_read(self, mar): # mar == memory address register (the address that is being read or written to)
-        # get address to read
-        # return the value stored at that address
+    def ram_read(self, mar): # mar == memory address register
         return self.ram[mar]
         # might set the initial value of the stack pointer here later
 
-    def ram_write(self, mdr, mar): # mdr == memory data register (the data that was read, or to write)
-        # set the value of mdr to the location associated with mar
+    def ram_write(self, mdr, mar): # mdr == memory data register
         self.ram[mar] = mdr
         # might set the initial value of the stack pointer here later
 
     def run(self):
         running = True
-        # read the memory address stored in self.pc
-        # store that result in the IR (which can just be a local variable here)
+
         while running:
             ir = self.ram[self.pc]
             # using self.ram_read, read the bytes at pc+1 and pc+2 into variables operand_a and operand_b
@@ -96,20 +110,15 @@ class CPU:
                 self.pc += 1
                 running = False
             # if ir == LDI, set operand_a to the value of operand_b, and increase self.pc by 3
-            elif ir == 0b10000010:
-                self.reg[operand_a] = operand_b
-                self.pc += 3
+            elif ir == LDI:
+                self.handle_LDI(operand_a, operand_b)
             # if ir == PRN, print the numeric value stored in operand_a
-            elif ir == 0b01000111:
-                print(self.reg[operand_a])
-                self.pc += 2
+            elif ir == PRN:
+                self.handle_PRN(operand_a)
             # if ir == MUL, send to self.alu() and mult a * b
-            elif ir == 0b10100010:
-                self.alu("MUL", operand_a, operand_b)
-                self.pc += 3
+            elif ir == MUL:
+                self.handle_MUL(operand_a, operand_b)
             else:
                 print(f"Unknown instruction {ir}")
                 sys.exit(1)
-            # ensure to increase pc the appropriate amount at the end of each instruction's execution
-            # check the spec for the number of bytes used per instruction (determined from the "two high bits, ie 6-7")
 
