@@ -23,15 +23,15 @@ class CPU:
 
     def handle_LDI(self, reg, val):
         self.reg[reg] = val
-        self.pc += 3
+        #self.pc += 3
 
     def handle_PRN(self, reg):
         print(self.reg[reg])
-        self.pc += 2
+        #self.pc += 2
 
     def handle_MUL(self, num1, num2):
         self.alu("MUL", num1, num2)
-        self.pc += 3
+        #self.pc += 3
 
     def load(self):
         if len(sys.argv) != 2:
@@ -107,17 +107,22 @@ class CPU:
 
             # if ir == HLT, increase pc by 1 and set running to False to close while
             if ir == 0b00000001:
-                self.pc += 1
                 running = False
             # if ir == LDI, set operand_a to the value of operand_b, and increase self.pc by 3
-            elif ir == LDI:
+            elif ir == LDI: # 0b10000010
+                num_operands = (ir & 0b11000000) >> 6
                 self.handle_LDI(operand_a, operand_b)
+                self.pc += num_operands + 1
             # if ir == PRN, print the numeric value stored in operand_a
-            elif ir == PRN:
+            elif ir == PRN: # 0b01000111
+                num_operands = (ir & 0b11000000) >> 6
                 self.handle_PRN(operand_a)
+                self.pc += num_operands + 1
             # if ir == MUL, send to self.alu() and mult a * b
-            elif ir == MUL:
+            elif ir == MUL: # 0b10100010
+                num_operands = (ir & 0b11000000) >> 6
                 self.handle_MUL(operand_a, operand_b)
+                self.pc += num_operands + 1
             else:
                 print(f"Unknown instruction {ir}")
                 sys.exit(1)
