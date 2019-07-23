@@ -80,7 +80,7 @@ class CPU:
         # read the memory address stored in self.pc
         # store that result in the IR (which can just be a local variable here)
         while running:
-            ir = self.ram[pc]
+            ir = self.ram[self.pc]
             # using self.ram_read, read the bytes at pc+1 and pc+2 into variables operand_a and operand_b
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
