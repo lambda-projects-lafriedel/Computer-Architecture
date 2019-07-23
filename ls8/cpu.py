@@ -94,6 +94,13 @@ class CPU:
             elif ir == 0b10000010:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
+            # if ir == PRN, print the numeric value stored in operand_a
+            elif ir == 0b01000111:
+                print(self.reg[operand_a])
+                self.pc += 2
+            else:
+                print(f"Unknown instruction {ir}")
+                sys.exit(1)
             # ensure to increase pc the appropriate amount at the end of each instruction's execution
             # check the spec for the number of bytes used per instruction (determined from the "two high bits, ie 6-7")
 
