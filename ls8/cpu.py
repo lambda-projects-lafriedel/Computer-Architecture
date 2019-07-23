@@ -68,11 +68,32 @@ class CPU:
         # get address to read
         # return the value stored at that address
         return self.ram[mar]
+        # might set the initial value of the stack pointer here later
 
     def ram_write(self, mdr, mar): # mdr == memory data register (the data that was read, or to write)
         # set the value of mdr to the location associated with mar
         self.ram[mar] = mdr
+        # might set the initial value of the stack pointer here later
 
     def run(self):
-        """Run the CPU."""
-        pass
+        running = True
+        # read the memory address stored in self.pc
+        # store that result in the IR (which can just be a local variable here)
+        while running:
+            ir = self.ram[pc]
+            # using self.ram_read, read the bytes at pc+1 and pc+2 into variables operand_a and operand_b
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            # depending on the value of the opcode, perform actions needed for each instruction
+                # ex: if opcode == x, do this, elif opcode == y, do that, else: print(f"unknown instruction {command}")
+            # if ir == HLT, increase pc by 1 and set running to False to close while
+            if ir == 0b00000001:
+                self.pc += 1
+                running = False
+            # if ir == LDI, set operand_a to the value of operand_b, and increase self.pc by 3
+            elif ir == 0b10000010:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            # ensure to increase pc the appropriate amount at the end of each instruction's execution
+            # check the spec for the number of bytes used per instruction (determined from the "two high bits, ie 6-7")
+
