@@ -9,7 +9,9 @@ class CPU:
         self.ram = [0] * 256 # base 10 indexing
         self.reg = [0] * 8
         self.pc = 0
-        
+        # self.fl -- mentioned inside trace()
+        # self.ie -- mentioned inside trace()
+
 
     def load(self):
         """Load a program into memory."""
@@ -61,6 +63,15 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    
+    def ram_read(self, mar): # mar == memory address register (the address that is being read or written to)
+        # get address to read
+        # return the value stored at that address
+        return self.ram[mar]
+
+    def ram_write(self, mdr, mar): # mdr == memory data register (the data that was read, or to write)
+        # set the value of mdr to the location associated with mar
+        self.ram[mar] = mdr
 
     def run(self):
         """Run the CPU."""
