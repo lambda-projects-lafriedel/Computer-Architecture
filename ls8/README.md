@@ -65,6 +65,22 @@ but you'll have to implement those three above instructions first!
 * Read this whole file.
 * Skim the spec.
 
+### Notes
+
+* cpu.py
+    * contains a CPU class with multiple components:
+        * a constructor that needs to be filled out
+        * `load` method that loads a program into memory - currently hardcoded
+        * `alu` method that performs arithmetic computations. Looks like it needs to be finished up.
+        * `trace` method to print out the CPU state. It is suggested to use this from run() for debugging
+        * `run` method that needs to be filled out
+* ls8.py
+    * imports everything from cpu.py and calls `cpu.load()` and `cpu.run()`
+* ls8-spec.md (outside this folder)
+    * contains info on instruction sets and registers, memory layout and interrupts
+* faq.md
+    * contains answers to general questions and questions on the cpu stack, registers, and interrupts
+
 ## Step 1: Add the constructor to `cpu.py`
 
 Add list properties to the `CPU` class to hold 256 bytes of memory and 8
