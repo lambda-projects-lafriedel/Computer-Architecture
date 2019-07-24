@@ -33,32 +33,25 @@ class CPU:
         self.running = False
 
     def handle_PUSH(self, ir, regnum, operand):
-        num_operands = (ir & 0b11000000) >> 6
         self.reg[SP] -= 1
         self.ram_write(self.reg[regnum], self.reg[SP])
-        self.pc += num_operands + 1
     
     def handle_POP(self, ir, regnum, operand):
-        num_operands = (ir & 0b11000000) >> 6
         self.reg[regnum] = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
-        self.pc += num_operands + 1
         
 
-    def handle_LDI(self, ir, reg, val):
-        num_operands = (ir & 0b11000000) >> 6
-        self.reg[reg] = val
-        self.pc += num_operands + 1
+    def handle_LDI(self, ir, regnum, val):
+        self.reg[regnum] = val
 
     def handle_PRN(self, ir, regnum, operand):
-        num_operands = (ir & 0b11000000) >> 6
         print(self.reg[regnum])
-        self.pc += num_operands + 1
 
     def handle_MUL(self, ir, num1, num2):
-        num_operands = (ir & 0b11000000) >> 6
         self.alu("MUL", num1, num2)
-        self.pc += num_operands + 1
+
+    def num_operands(self, ir):
+        return (ir & 0b11000000) >> 6
 
     def load(self):
         if len(sys.argv) != 2:
@@ -117,7 +110,6 @@ class CPU:
 
     def run(self):
         self.running = True
-        self.trace()
         while self.running:
             ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
@@ -125,6 +117,7 @@ class CPU:
 
             try:
                 self.branch_table[ir](ir, operand_a, operand_b)
+                self.pc += ((ir & 0b11000000) >> 6) + 1
             except:
                 print(f"Unknown instruction {ir}")
                 sys.exit(1)
