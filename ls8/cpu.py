@@ -14,8 +14,7 @@ class CPU:
 
     def __init__(self):
         self.ram = [0b00000000] * 256 # base 10 indexing
-        self.reg = [0b00000000] * 8 # by default, R7 is the stack pointer
-        # SP points at the value at the top of the stack (most recently pushed), or at address 244 if the stack is empty
+        self.reg = [0b00000000] * 8
         self.running = False
         self.pc = 0
         self.reg[SP] = 244
@@ -34,16 +33,14 @@ class CPU:
         self.running = False
 
     def handle_PUSH(self, ir, regnum, operand):
-        # self.ram_write(val, self.reg[SP])
         num_operands = (ir & 0b11000000) >> 6
         self.reg[SP] -= 1
-        self.ram[self.reg[SP]] = self.reg[regnum]
+        self.ram_write(self.reg[regnum], self.reg[SP])
         self.pc += num_operands + 1
     
     def handle_POP(self, ir, regnum, operand):
-        # val = self.ram[self.reg[SP]]
         num_operands = (ir & 0b11000000) >> 6
-        self.reg[regnum] = self.ram[self.reg[SP]]
+        self.reg[regnum] = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
         self.pc += num_operands + 1
         
@@ -52,19 +49,16 @@ class CPU:
         num_operands = (ir & 0b11000000) >> 6
         self.reg[reg] = val
         self.pc += num_operands + 1
-        #self.pc += 3
 
     def handle_PRN(self, ir, regnum, operand):
         num_operands = (ir & 0b11000000) >> 6
         print(self.reg[regnum])
         self.pc += num_operands + 1
-        #self.pc += 2
 
     def handle_MUL(self, ir, num1, num2):
         num_operands = (ir & 0b11000000) >> 6
         self.alu("MUL", num1, num2)
         self.pc += num_operands + 1
-        #self.pc += 3
 
     def load(self):
         if len(sys.argv) != 2:
@@ -75,20 +69,14 @@ class CPU:
                 address = 0
 
                 for line in f:
-                    # read contents line by line
                     num = line.split("#", 1)[0]
 
                     if num.strip() == '':
                         continue
                     
-                    # save appropriate data to RAM
-                    # make sure to convert binary strings to ints
                     self.ram_write(int(num, 2), address)
-
-                    # increase address by 1
                     address += 1
 
-        # catch errors if user doesn't send appropriate args
         except FileNotFoundError:
             print(f"{sys.argv[0]}: {sys.argv[1]} not found")
 
@@ -123,18 +111,14 @@ class CPU:
     
     def ram_read(self, mar): # mar == memory address register
         return self.ram[mar]
-        # might set the initial value of the stack pointer here later
 
     def ram_write(self, mdr, mar): # mdr == memory data register
         self.ram[mar] = mdr
-        # might set the initial value of the stack pointer here later
 
     def run(self):
         self.running = True
         self.trace()
         while self.running:
-            # initialize the stack pointer
-            # using self.ram_read, read the bytes at pc+1 and pc+2 into variables operand_a and operand_b
             ir = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
