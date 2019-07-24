@@ -1,25 +1,39 @@
 """CPU functionality."""
 
 import sys
-
+SP = 7
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        self.ram = [0] * 256 # base 10 indexing
-        self.reg = [0] * 8
+        self.ram = [0b00000000] * 256 # base 10 indexing
+        self.reg = [0b00000000] * 8 # by default, R7 is the stack pointer
+        # SP points at the value at the top of the stack (most recently pushed), or at address 244 if the stack is empty
         self.pc = 0
+        self.reg[SP] = 244
         self.branch_table = {
             LDI: self.handle_LDI,
             PRN: self.handle_PRN,
-            MUL: self.handle_MUL
+            MUL: self.handle_MUL,
+            PUSH: self.handle_PUSH,
+            POP: self.handle_POP
         }
         # self.fl -- mentioned inside trace()
         # self.ie -- mentioned inside trace()
+    def handle_PUSH(self, regnum):
+        # self.ram_write(val, self.reg[SP])
+        self.ram[self.reg[SP]] = self.reg[regnum]
+    
+    def handle_POP(self, regnum):
+        # val = self.ram[self.reg[SP]]
+        self.reg[regnum] = self.ram[self.reg[SP]]
+        
 
     def handle_LDI(self, reg, val):
         self.reg[reg] = val
@@ -100,29 +114,53 @@ class CPU:
         running = True
 
         while running:
+            # initialize the stack pointer
             ir = self.ram[self.pc]
             # using self.ram_read, read the bytes at pc+1 and pc+2 into variables operand_a and operand_b
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
+            # self.branch_table[ir]()
             # if ir == HLT, increase pc by 1 and set running to False to close while
             if ir == 0b00000001:
                 running = False
             # if ir == LDI, set operand_a to the value of operand_b, and increase self.pc by 3
-            elif ir == LDI: # 0b10000010
+            elif ir == LDI:
+                print("IN LDI")
+                self.trace()
                 num_operands = (ir & 0b11000000) >> 6
                 self.handle_LDI(operand_a, operand_b)
                 self.pc += num_operands + 1
             # if ir == PRN, print the numeric value stored in operand_a
-            elif ir == PRN: # 0b01000111
+            elif ir == PRN:
+                print("IN PRN")
+                self.trace()
                 num_operands = (ir & 0b11000000) >> 6
                 self.handle_PRN(operand_a)
                 self.pc += num_operands + 1
             # if ir == MUL, send to self.alu() and mult a * b
-            elif ir == MUL: # 0b10100010
+            elif ir == MUL:
                 num_operands = (ir & 0b11000000) >> 6
                 self.handle_MUL(operand_a, operand_b)
                 self.pc += num_operands + 1
+            elif ir == PUSH:
+                print("IN PUSH")
+                self.trace()
+                num_operands = (ir & 0b11000000) >> 6
+                # decrement the SP -- do this first because the first pointer is actually holding a value
+                self.reg[SP] -= 1
+                # copy the value in the given register (the operand) to the address pointed to by SP
+                self.handle_PUSH(operand_a)
+                self.pc += num_operands + 1
+            elif ir == POP:
+                print("IN POP")
+                self.trace()
+                num_operands = (ir & 0b11000000) >> 6
+                # copy the value from the address pointed to by SP to the given register (operand)
+                self.handle_POP(operand_a)
+                self.reg[SP] += 1
+                self.pc += num_operands + 1
+                # increment SP
             else:
                 print(f"Unknown instruction {ir}")
                 sys.exit(1)
