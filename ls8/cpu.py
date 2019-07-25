@@ -35,55 +35,48 @@ class CPU:
         
     def handle_RET(self, ir, operand1, operand2):
         # pop the value from the top of the stack
-        print("INSIDE RET")
+        # set the value of the pc to the stored address in the register
         self.pc = self.ram[self.reg[SP]]
+        # increase the stack pointer since a value was popped off
         self.reg[SP] += 1
     
     def handle_CALL(self, ir, regnum, next_inst):
+        # next_inst = 
         # set the address to return to after subroutine completes
-        # push the address of the instruction DIRECTLY AFTER call to the stack
-        print("INSIDE CALL")
+        # decrease the stack pointer since we are adding something onto the stack
         self.reg[SP] -= 1
-        self.ram[self.reg[SP]] = next_inst
+        # push the address of the instruction DIRECTLY AFTER call to the stack
+        self.ram[self.reg[SP]] = self.pc + 2
         # self.pc is set to the address stored in the reg (operand1)
         self.pc = self.reg[regnum]
-        # jump to the location of self.pc in RAM and execute the first instruction
 
     def handle_HLT(self, ir, operand1, operand2):
-        print("INSIDE HLT")
         self.running = False
 
     def handle_PUSH(self, ir, regnum, operand):
-        print("INSIDE HLT")
         self.reg[SP] -= 1
         self.ram_write(self.reg[regnum], self.reg[SP])
         self.pc += ((ir & 0b11000000) >> 6) + 1
     
     def handle_POP(self, ir, regnum, operand):
-        print("INSIDE POP")
         self.reg[regnum] = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
         self.pc += ((ir & 0b11000000) >> 6) + 1
         
     def handle_LDI(self, ir, regnum, val):
-        print("INSIDE LDI")
         self.reg[regnum] = val
         self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def handle_PRN(self, ir, regnum, operand):
-        print("INSIDE PRN")
         print(self.reg[regnum])
         self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def handle_MUL(self, ir, num1, num2):
-        print("INSIDE MUL")
         self.alu("MUL", num1, num2)
         self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def handle_ADD(self, ir, num1, num2):
-        print("INSIDE ADD")
         self.alu("ADD", num1, num2)
-        print("GOT PAST ADDING")
         self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def num_operands(self, ir):
@@ -111,7 +104,6 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         if op == "ADD":
-            print("INSIDE ALU ADD")
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
