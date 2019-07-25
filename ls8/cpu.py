@@ -36,7 +36,7 @@ class CPU:
     def handle_RET(self, ir, operand1, operand2):
         # pop the value from the top of the stack
         print("INSIDE RET")
-        self.pc = self.ram_read(self.reg[SP])
+        self.pc = self.ram[self.reg[SP]]
         self.reg[SP] += 1
     
     def handle_CALL(self, ir, regnum, next_inst):
@@ -44,7 +44,7 @@ class CPU:
         # push the address of the instruction DIRECTLY AFTER call to the stack
         print("INSIDE CALL")
         self.reg[SP] -= 1
-        self.ram[self.reg[SP]] = self.ram[next_inst]
+        self.ram[self.reg[SP]] = next_inst
         # self.pc is set to the address stored in the reg (operand1)
         self.pc = self.reg[regnum]
         # jump to the location of self.pc in RAM and execute the first instruction
