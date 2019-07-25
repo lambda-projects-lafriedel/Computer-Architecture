@@ -8,6 +8,9 @@ MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
 HLT = 0b00000001
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -22,12 +25,27 @@ class CPU:
             LDI: self.handle_LDI,
             PRN: self.handle_PRN,
             MUL: self.handle_MUL,
+            ADD: self.handle_ADD,
             PUSH: self.handle_PUSH,
             POP: self.handle_POP,
-            HLT: self.handle_HLT
+            HLT: self.handle_HLT,
+            CALL: self.handle_CALL,
+            RET: self.handle_RET
         }
         # self.fl -- mentioned inside trace()
         # self.ie -- mentioned inside trace()
+    def handle_RET(self, ir, operand1, operand2):
+        pass
+        # purpose: return from subroutine
+        # pop the value from the top of the stack
+        # store it in self.pc
+    
+    def handle_CALL(self, ir, operand1, operand2):
+        pass
+        # purpose: call a subroutine (func) at the address stored in the register -- operand1
+        # push the address of the instruction DIRECTLY AFTER call to the stack
+        # self.pc is set to the address stored in the reg (operand1)
+        # jump to the location of self.pc in RAM and execute the first instruction
 
     def handle_HLT(self, ir, operand1, operand2):
         self.running = False
@@ -40,7 +58,6 @@ class CPU:
         self.reg[regnum] = self.ram_read(self.reg[SP])
         self.reg[SP] += 1
         
-
     def handle_LDI(self, ir, regnum, val):
         self.reg[regnum] = val
 
@@ -49,6 +66,9 @@ class CPU:
 
     def handle_MUL(self, ir, num1, num2):
         self.alu("MUL", num1, num2)
+
+    def handle_ADD(self, ir, num1, num2):
+        self.alu("ADD", num1, num2)
 
     def num_operands(self, ir):
         return (ir & 0b11000000) >> 6
@@ -77,8 +97,7 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         if op == "MUL":
-            product = self.reg[reg_a] * self.reg[reg_b]
-            self.reg[reg_a] = product
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
