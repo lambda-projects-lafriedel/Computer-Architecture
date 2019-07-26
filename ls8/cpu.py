@@ -11,6 +11,7 @@ POP = 0b01000110
 HLT = 0b00000001
 CALL = 0b01010000
 RET = 0b00010001
+JMP = 0b01010100
 
 class CPU:
     """Main CPU class."""
@@ -30,8 +31,13 @@ class CPU:
             POP: self.handle_POP,
             HLT: self.handle_HLT,
             CALL: self.handle_CALL,
-            RET: self.handle_RET
+            RET: self.handle_RET,
+            JMP: self.handle_JMP
         }
+
+    def handle_JMP(self, ir, regnum, operand2):
+        # set the pc to the address stored in the given register
+        self.pc = self.reg[regnum]
         
     def handle_RET(self, ir, operand1, operand2):
         # pop the value from the top of the stack
