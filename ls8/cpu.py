@@ -13,6 +13,8 @@ CALL = 0b01010000
 RET = 0b00010001
 JMP = 0b01010100
 CMP = 0b10100111
+JEQ = 0b01010101
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -35,12 +37,27 @@ class CPU:
             CALL: self.handle_CALL,
             RET: self.handle_RET,
             JMP: self.handle_JMP,
-            CMP: self.handle_CMP
+            CMP: self.handle_CMP,
+            JEQ: self.handle_JEQ,
+            JNE: self.handle_JNE
 
         }
+    
+    def handle_JEQ(self, ir, regnum, operand2):
+        # if equal flag is set to 1, jump to the address stored in the given register
+        if (self.fl & 0b00000001) == 1:
+            self.pc = self.reg[regnum]
+        else:
+            self.pc += ((ir & 0b11000000) >> 6) + 1
+
+    def handle_JNE(self, ir, regnum, operand2):
+        # if equal flag is set to 0, jump to address stored in given register
+        if (self.fl & 0b00000001) == 0:
+            self.pc = self.reg[regnum]
+        else:
+            self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def handle_CMP(self, ir, regnum1, regnum2):
-        pass
         # send the regnums to the ALU
         self.alu("CMP", regnum1, regnnum2)
         self.pc += ((ir & 0b11000000) >> 6) + 1
