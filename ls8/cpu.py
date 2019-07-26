@@ -12,6 +12,7 @@ HLT = 0b00000001
 CALL = 0b01010000
 RET = 0b00010001
 JMP = 0b01010100
+CMP = 0b10100111
 
 class CPU:
     """Main CPU class."""
@@ -21,6 +22,7 @@ class CPU:
         self.reg = [0b00000000] * 8
         self.running = False
         self.pc = 0
+        self.fl = 0b00000000
         self.reg[SP] = 244
         self.branch_table = {
             LDI: self.handle_LDI,
@@ -32,8 +34,16 @@ class CPU:
             HLT: self.handle_HLT,
             CALL: self.handle_CALL,
             RET: self.handle_RET,
-            JMP: self.handle_JMP
+            JMP: self.handle_JMP,
+            CMP: self.handle_CMP
+
         }
+
+    def handle_CMP(self, ir, regnum1, regnum2):
+        pass
+        # send the regnums to the ALU
+        self.alu("CMP", regnum1, regnnum2)
+        self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def handle_JMP(self, ir, regnum, operand2):
         # set the pc to the address stored in the given register
@@ -113,6 +123,26 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op = "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                # set E flag to 1    0b00000100
+                self.fl = (self.fl | 0b00000001)
+            else:
+                # set it to 0
+                self.fl = (self.fl & 0b11111110)
+
+            if self.reg[reg_a] < self.reg[reg_b]:
+                # set the L flag to 1
+                self.fl = (self.fl | 0b00000100)
+            else:
+                self.fl = (self.fl & 0b11111011)
+
+            if self.reg[reg_a] > self.reg[reg_b]:
+                # set the G flag to 1
+                self.fl = (self.fl | 0b00000010)
+            else:
+                # set it to 0
+                self.fl = (self.fl & 0b11111101)
         else:
             raise Exception("Unsupported ALU operation")
 
