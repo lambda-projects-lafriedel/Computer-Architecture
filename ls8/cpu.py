@@ -11,6 +11,10 @@ POP = 0b01000110
 HLT = 0b00000001
 CALL = 0b01010000
 RET = 0b00010001
+JMP = 0b01010100
+CMP = 0b10100111
+JEQ = 0b01010101
+JNE = 0b01010110
 
 class CPU:
     """Main CPU class."""
@@ -20,6 +24,7 @@ class CPU:
         self.reg = [0b00000000] * 8
         self.running = False
         self.pc = 0
+        self.fl = 0b00000000
         self.reg[SP] = 244
         self.branch_table = {
             LDI: self.handle_LDI,
@@ -30,8 +35,36 @@ class CPU:
             POP: self.handle_POP,
             HLT: self.handle_HLT,
             CALL: self.handle_CALL,
-            RET: self.handle_RET
+            RET: self.handle_RET,
+            JMP: self.handle_JMP,
+            CMP: self.handle_CMP,
+            JEQ: self.handle_JEQ,
+            JNE: self.handle_JNE
+
         }
+    
+    def handle_JEQ(self, ir, regnum, operand2):
+        # if equal flag is set to 1, jump to the address stored in the given register
+        if (self.fl & 0b00000001) == 1:
+            self.pc = self.reg[regnum]
+        else:
+            self.pc += ((ir & 0b11000000) >> 6) + 1
+
+    def handle_JNE(self, ir, regnum, operand2):
+        # if equal flag is set to 0, jump to address stored in given register
+        if (self.fl & 0b00000001) == 0:
+            self.pc = self.reg[regnum]
+        else:
+            self.pc += ((ir & 0b11000000) >> 6) + 1
+
+    def handle_CMP(self, ir, regnum1, regnum2):
+        # send the regnums to the ALU
+        self.alu("CMP", regnum1, regnum2)
+        self.pc += ((ir & 0b11000000) >> 6) + 1
+
+    def handle_JMP(self, ir, regnum, operand2):
+        # set the pc to the address stored in the given register
+        self.pc = self.reg[regnum]
         
     def handle_RET(self, ir, operand1, operand2):
         # pop the value from the top of the stack
@@ -107,6 +140,26 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                # set E flag to 1    0b00000100
+                self.fl = (self.fl | 0b00000001)
+            else:
+                # set it to 0
+                self.fl = (self.fl & 0b11111110)
+
+            if self.reg[reg_a] < self.reg[reg_b]:
+                # set the L flag to 1
+                self.fl = (self.fl | 0b00000100)
+            else:
+                self.fl = (self.fl & 0b11111011)
+
+            if self.reg[reg_a] > self.reg[reg_b]:
+                # set the G flag to 1
+                self.fl = (self.fl | 0b00000010)
+            else:
+                # set it to 0
+                self.fl = (self.fl & 0b11111101)
         else:
             raise Exception("Unsupported ALU operation")
 
