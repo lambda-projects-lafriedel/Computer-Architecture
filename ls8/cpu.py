@@ -59,7 +59,7 @@ class CPU:
 
     def handle_CMP(self, ir, regnum1, regnum2):
         # send the regnums to the ALU
-        self.alu("CMP", regnum1, regnnum2)
+        self.alu("CMP", regnum1, regnum2)
         self.pc += ((ir & 0b11000000) >> 6) + 1
 
     def handle_JMP(self, ir, regnum, operand2):
@@ -140,7 +140,7 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
-        elif op = "CMP":
+        elif op == "CMP":
             if self.reg[reg_a] == self.reg[reg_b]:
                 # set E flag to 1    0b00000100
                 self.fl = (self.fl | 0b00000001)
